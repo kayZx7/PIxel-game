@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memória dos Irmãos Izaac & Ícaro 🧩</title>
+<style>
+  body {
+    font-family: "Comic Sans MS", Arial, sans-serif;
+    background: linear-gradient(135deg, #6dd5fa, #2980b9);
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1 {
+    margin-top: 20px;
+    font-size: 2em;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+  }
+
+  #placar {
+    font-size: 1.2em;
+    margin: 10px 0;
+  }
+
+  #tabuleiro {
+    display: grid;
+    grid-template-columns: repeat(4, 110px);
+    grid-gap: 15px;
+    justify-content: center;
+    margin: 20px auto;
+    width: 480px;
+  }
+
+  .carta {
+    width: 110px;
+    height: 110px;
+    perspective: 600px;
+    cursor: pointer;
+  }
+
+  .inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+
+  .virada {
+    transform: rotateY(180deg);
+  }
+
+  .frente, .verso {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 10px;
+  }
+
+  .frente {
+    background: #ffffff44;
+    border: 3px solid white;
+  }
+
+  .verso {
+    transform: rotateY(180deg);
+    background-size: cover;
+    background-position: center;
+    border: 3px solid white;
+  }
+
+  #mensagem {
+    margin-top: 15px;
+    font-size: 20px;
+  }
+
+  #reiniciar {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: white;
+    color: #2980b9;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  #reiniciar:hover {
+    background: #f0f0f0;
+  }
+</style>
+</head>
+<body>
+
+  <h1>🧠 Memória dos Irmãos Izaac & Ícaro</h1>
+  <div id="placar">✨ Pontuação: <span id="pontos">0</span> | Erros: <span id="erros">0</span></div>
+  <div id="tabuleiro"></div>
+  <p id="mensagem"></p>
+  <button id="reiniciar">🔄 Jogar Novamente</button>
+
+<script>
+  // 🖼️ Coloque suas próprias imagens na pasta "img"
+  const imagens = [
+    "img/izaac1.jpeg",
+    "img/izaac2.jpeg",
+    "img/icaro1.jpeg",
+    "img/icaro2.jpeg",
+    "img/icaro3.jpeg",
+    "img/izaac3.jpeg",
+    "img/izaac4.jpeg",
+    "img/ambos.jpeg"
+  ];
+
+  let cartas = [...imagens, ...imagens]; // cria pares
+  const tabuleiro = document.getElementById("tabuleiro");
+  const mensagem = document.getElementById("mensagem");
+  const botao = document.getElementById("reiniciar");
+  const pontosEl = document.getElementById("pontos");
+  const errosEl = document.getElementById("erros");
+
+  let primeiraCarta = null;
+  let segundaCarta = null;
+  let travado = false;
+  let paresEncontrados = 0;
+  let pontos = 0;
+  let erros = 0;
+
+  // 🔄 Função para embaralhar e começar o jogo
+  function iniciarJogo() {
+    tabuleiro.innerHTML = "";
+    mensagem.textContent = "";
+    paresEncontrados = 0;
+    pontos = 0;
+    erros = 0;
+    atualizarPlacar();
+    cartas.sort(() => 0.5 - Math.random());
+    primeiraCarta = null;
+    segundaCarta = null;
+    travado = false;
+
+    cartas.forEach((imgSrc) => {
+      const carta = document.createElement("div");
+      carta.classList.add("carta");
+
+      carta.innerHTML = `
+        <div class="inner">
+          <div class="frente"></div>
+          <div class="verso" style="background-image: url('${imgSrc}')"></div>
+        </div>
+      `;
+
+      carta.addEventListener("click", () => virarCarta(carta));
+      tabuleiro.appendChild(carta);
+    });
+  }
+
+  // 🧩 Virar carta
+  function virarCarta(carta) {
+    if (travado || carta === primeiraCarta) return;
+    carta.querySelector(".inner").classList.add("virada");
+
+    if (!primeiraCarta) {
+      primeiraCarta = carta;
+      return;
+    }
+
+    segundaCarta = carta;
+    travado = true;
+
+    const img1 = primeiraCarta.querySelector(".verso").style.backgroundImage;
+    const img2 = segundaCarta.querySelector(".verso").style.backgroundImage;
+
+    if (img1 === img2) {
+      // ✅ Par encontrado
+      pontos += 10;
+      paresEncontrados++;
+      atualizarPlacar();
+
+      primeiraCarta = null;
+      segundaCarta = null;
+      travado = false;
+
+      if (paresEncontrados === imagens.length) {
+        mensagem.textContent = `🎉 Parabéns Izaac & Ícaro! Vocês venceram com ${pontos} pontos!`;
+      }
+    } else {
+      // ❌ Erro
+      erros++;
+      atualizarPlacar();
+      setTimeout(() => {
+        primeiraCarta.querySelector(".inner").classList.remove("virada");
+        segundaCarta.querySelector(".inner").classList.remove("virada");
+        primeiraCarta = null;
+        segundaCarta = null;
+        travado = false;
+      }, 1000);
+    }
+  }
+
+  function atualizarPlacar() {
+    pontosEl.textContent = pontos;
+    errosEl.textContent = erros;
+  }
+
+  botao.addEventListener("click", iniciarJogo);
+  iniciarJogo();
+</script>
+
+</body>
+</html>
